@@ -1,0 +1,9 @@
+#!ipxe
+# SPDX-FileCopyrightText: © 2020 Open Networking Foundation <support@opennetworking.org>
+# SPDX-License-Identifier: Apache-2.0
+
+# autoconfigure self via DHCP
+dhcp
+
+# chainload netboot.ipxe, or drop to shell if it doesn't exist
+chain http://boot.tucson.onlab.us/boot.ipxe || shell

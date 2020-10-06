@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: © 2020 Open Networking Foundation <support@opennetworking.org>
+# SPDX-License-Identifier: Apache-2.0
+
+[gerrit]
+host=gerrit.opencord.org
+port=29418
+project=ipxe-build.git
+defaultremote=origin
