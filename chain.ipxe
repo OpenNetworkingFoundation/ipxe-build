@@ -6,4 +6,4 @@
 dhcp
 
 # chainload netboot.ipxe, or drop to shell if it doesn't exist
-chain http://boot.tucson.onlab.us/boot.ipxe || shell
+chain https://boot.tucson.onlab.us:2443/boot.ipxe || shell

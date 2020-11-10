@@ -3,3 +3,7 @@
 
 ipxe
 out/*
+
+# ignore crypto
+*.key
+*.pem

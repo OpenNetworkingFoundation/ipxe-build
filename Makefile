@@ -30,19 +30,21 @@ out:
 base: | ipxe  ## create bas iPXE build container using Docker
 	docker build . -t ipxe-builder:$(IPXE_VERSION)
 
-image: | out base ## create iPXE binary artifacts using Docker
+image: | out base  ## create iPXE binary artifacts using Docker
 	docker run -v $(OUTDIR):/tmp/out --name $(BUILDER) -d ipxe-builder:$(IPXE_VERSION)
-	docker cp $(COPY_FILES) $(BUILDER):/ipxe/src/
+	for file in $(COPY_FILES); do \
+    docker cp $$file $(BUILDER):/ipxe/src/ ;\
+  done
 	docker exec -w /ipxe/src $(BUILDER) \
     bash -c "make -j4 $(TARGETS) $(OPTIONS); cp $(TARGETS) /tmp/out"
 	docker rm --force $(BUILDER)
 
 test: image  ## test (currently only runs an image build)
 
-clean: ## remove output artifacts
+clean:  ## remove output artifacts
 	rm -rf out/*
 
-clean-all: clean ## full clean (delete iPXE git repo)
+clean-all: clean  ## full clean (delete iPXE git repo)
 	rm -rf ipxe
 
 license: ## check licenses
