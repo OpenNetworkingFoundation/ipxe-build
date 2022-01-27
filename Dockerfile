@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: © 2020 Open Networking Foundation <support@opennetworking.org>
 # SPDX-License-Identifier: Apache-2.0
 
-FROM debian:10.6
+FROM debian:11
 
 # Install Build packages
 RUN apt-get -y update \

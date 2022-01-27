@@ -2,8 +2,16 @@
 # SPDX-FileCopyrightText: © 2020 Open Networking Foundation <support@opennetworking.org>
 # SPDX-License-Identifier: Apache-2.0
 
-# autoconfigure self via DHCP
-dhcp
+# autoconfigure interface, or optionaly drop to shell
+ifconf || goto optional_shell
 
-# chainload netboot.ipxe, or drop to shell if it doesn't exist
-chain https://boot.tucson.onlab.us:2443/boot.ipxe || shell
+# display network settings before chainloading
+ifstat
+route
+
+# chainload netboot.ipxe, or continue if not available
+chain http://webserver/boot.ipxe || goto optional_shell
+
+# if unable to chainload, wait 10 seconds for command entry, or exit iPXE and continue boot
+:optional_shell
+prompt --timeout 10000 Press any key for iPXE command line... && shell || exit

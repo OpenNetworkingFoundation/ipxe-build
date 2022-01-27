@@ -5,8 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 # iPXE Build
 
 This repo will builds an [iPXE](https://ipxe.org/) payload that can be used for
-network booting of systems.
-
+network booting of computer systems.
 
 Docker is used to build iPXE, wrapping [all build
 dependencies](https://ipxe.org/download#source_code) in the Dockerfile, An
@@ -29,7 +28,12 @@ Run `make image`, artifacts will be created in `out`. By default it will build:
 
 - `undionly.kxpe` - Can be served by a DHCP server and chainloads with the
   NIC's built in PXE and network driver implementation
+
 - `ipxe.usb` - write to a USB stick with `dd if=bin/ipxe.usb of=/dev/<rawdevice>`
+
+- `ipxe.pdisk` - padded to floppy size, useful for some LOM implementations
+
+- `ipxe.iso` - ISO image for writing to optical discs, and some other tools.
 
 See also [build targets](https://ipxe.org/appnote/buildtargets).
 
@@ -55,6 +59,7 @@ Steps:
 
 2. Build the artifacts incorporating all these files using Makefile options:
 
-    make COPY_FILES="chain.ipxe ca.pem client.pem client.key" OPTIONS="EMBED=chain.ipxe CERT=ca.pem,client.pem TRUST=onfca.pem
-PRIVKEY=client.key"
+    make COPY_FILES="chain.ipxe onfca.pem client.pem client.key" \
+      OPTIONS="EMBED=chain.ipxe CERT=onfca.pem,client.pem TRUST=onfca.pem PRIVKEY=client.key" \
+      image
 
