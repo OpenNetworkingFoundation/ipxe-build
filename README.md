@@ -1,20 +1,18 @@
-<!--
-SPDX-FileCopyrightText: © 2020 Open Networking Foundation <support@opennetworking.org>
-SPDX-License-Identifier: Apache-2.0
---!>
 # iPXE Build
 
-This repo will builds an [iPXE](https://ipxe.org/) payload that can be used for
-network booting of computer systems.
+This repo builds an [iPXE](https://ipxe.org/) payload that can be used for
+USB or network booting of systems.
 
 Docker is used to build iPXE, wrapping [all build
 dependencies](https://ipxe.org/download#source_code) in the Dockerfile, An
 [embedded script](https://ipxe.org/embed) (`chain.ipxe`) is added which will
-chainload another iPXE script from a remote HTTP server and continue the boot
-process.
+chainload another iPXE script from a remote HTTP(S) server and continue the
+boot process.
 
-The chainloaded iPXE script is configured in the pxeboot role repo, which
-describes the menu, downloads boot images, etc.
+The chainloaded iPXE script which has the menu, OS files, and Debian preseed
+config is in the
+[pxeboot](https://gerrit.opencord.org/plugins/gitiles/ansible/role/pxeboot)
+ansible role.
 
 ## Requirements
 
@@ -27,13 +25,16 @@ describes the menu, downloads boot images, etc.
 Run `make image`, artifacts will be created in `out`. By default it will build:
 
 - `undionly.kxpe` - Can be served by a DHCP server and chainloads with the
-  NIC's built in PXE and network driver implementation
+  NIC's built in PXE UNDI network driver implementation
 
-- `ipxe.usb` - write to a USB stick with `dd if=bin/ipxe.usb of=/dev/<rawdevice>`
+- `ipxe.usb` - write to a USB stick with `dd if=bin/ipxe.usb
+  of=/dev/<rawdevice>`.  There are also 32 and 64 bit EFI versions of this
+  payload.
 
 - `ipxe.pdisk` - padded to floppy size, useful for some LOM implementations
 
 - `ipxe.iso` - ISO image for writing to optical discs, and some other tools.
+
 
 See also [build targets](https://ipxe.org/appnote/buildtargets).
 
@@ -46,9 +47,10 @@ Using mTLS requires [cryptography support](https://ipxe.org/crypto) to be added
 to the generated binaries. A patch is included that enables [HTTPS
 Support](https://ipxe.org/buildcfg/download_proto_https).
 
-To use this support, the CA key, and public/private client keys must copied and
-built into the iPXE artifacts. As the private client keys are embedded, care
-must be taken with the resulting artifacts.
+To use this support, the CA key, and public/private client certificates must
+copied and built into the iPXE artifacts. As the private client certs are
+embedded, care must be taken with the resulting artifacts as they contain those
+client certs.
 
 Steps:
 
