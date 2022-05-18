@@ -35,8 +35,16 @@ Run `make image`, artifacts will be created in `out`. By default it will build:
 
 - `ipxe.iso` - ISO image for writing to optical discs, and some other tools.
 
+- EFI32/EFI64 USB and snponly images
 
 See also [build targets](https://ipxe.org/appnote/buildtargets).
+
+## Chainloading
+
+Chainloading can be accomlished by modifying the `chain.ipxe` file with the URL
+of the target webserver, then embedding a script when building images:
+
+  make COPY_FILES="chain.ipxe" OPTIONS="EMBED=chain.ipxe" image
 
 ## Mutual TLS
 

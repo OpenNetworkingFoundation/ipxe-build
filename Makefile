@@ -7,13 +7,15 @@ SHELL = bash -eu -o pipefail
 
 # iPXE configuration
 IPXE_VERSION  ?= v1.21.1
-TARGETS       ?= bin/undionly.kpxe bin/ipxe.usb bin/ipxe.iso bin/ipxe.pdsk
-TARGETS_EFI32 ?= bin-i386-efi/ipxe.usb
-TARGETS_EFI64 ?= bin-x86_64-efi/ipxe.usb
+TARGETS_BIOS  ?= bin/undionly.kpxe bin/ipxe.usb bin/ipxe.iso bin/ipxe.pdsk
+TARGETS_EFI32 ?= bin-i386-efi/snponly.efi bin-i386-efi/ipxe.usb
+TARGETS_EFI64 ?= bin-x86_64-efi/snponly.efi bin-x86_64-efi/ipxe.usb
 OPTIONS       ?= EMBED=chain.ipxe
 COPY_FILES    ?= chain.ipxe
 
 # Build configuration
+DOCKER_ARGS   ?=
+TMP_DIR       ?= /tmp
 OUTDIR        ?= $(shell pwd)/out
 BUILDER       := ipxebuilder-$(shell date +"%Y%m%d%H%M%S")# timestamp for each run
 
@@ -24,7 +26,7 @@ BUILDER       := ipxebuilder-$(shell date +"%Y%m%d%H%M%S")# timestamp for each r
 .PHONY: base image clean clean-all license help
 
 ipxe: ## download and patch iPXE
-	git clone git://git.ipxe.org/ipxe.git \
+	git clone https://github.com/ipxe/ipxe.git \
   && cd ipxe \
   && git checkout $(IPXE_VERSION) \
   && git apply ../patches/*
@@ -33,17 +35,22 @@ out:
 	mkdir -p out
 
 base: | ipxe  ## create base iPXE build container using Docker
-	docker build . -t ipxe-builder:$(IPXE_VERSION)
+	docker build $(DOCKER_ARGS) . -t ipxe-builder:$(IPXE_VERSION)
 
 image: | out base  ## create iPXE binaries using Docker
-	docker run -v $(OUTDIR):/tmp/out --name $(BUILDER) -d ipxe-builder:$(IPXE_VERSION)
+	mkdir -p $(TMP_DIR)/ipxeout/bios
+	mkdir -p $(TMP_DIR)/ipxeout/efi32
+	mkdir -p $(TMP_DIR)/ipxeout/efi64
+	docker run $(DOCKER_ARGS) -v $(TMP_DIR)/ipxeout:/tmp/out --name $(BUILDER) -d ipxe-builder:$(IPXE_VERSION)
 	for file in $(COPY_FILES); do \
     docker cp $$file $(BUILDER):/ipxe/src/ ;\
   done
 	docker exec -w /ipxe/src $(BUILDER) \
-    bash -c "make -j4 $(TARGETS) $(OPTIONS); cp $(TARGETS) /tmp/out; \
-		         make -j4 $(TARGETS_EFI32) $(OPTIONS); cp $(TARGETS_EFI32) /tmp/out/ipxe_efi32.usb; \
-		         make -j4 $(TARGETS_EFI64) $(OPTIONS); cp $(TARGETS_EFI64) /tmp/out/ipxe_efi64.usb"
+    bash -c "make -j4 $(TARGETS_BIOS)  $(OPTIONS); cp $(TARGETS_BIOS)  /tmp/out/bios  ; \
+	           make -j4 $(TARGETS_EFI32) $(OPTIONS); cp $(TARGETS_EFI32) /tmp/out/efi32 ; \
+	           make -j4 $(TARGETS_EFI64) $(OPTIONS); cp $(TARGETS_EFI64) /tmp/out/efi64"
+	cp -r  $(TMP_DIR)/ipxeout/* $(OUTDIR)
+	rm -rf $(TMP_DIR)/ipxeout
 	docker rm --force $(BUILDER)
 
 test: image  ## test (currently only runs an image build)
